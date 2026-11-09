@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="zk-page" content="zk-clock-page:1">
+<meta name="zk-page" content="zk-clock-page:2">
 <title>ZK RH</title>
 <script>window.ZK_HASH = (function () { try { return String(window.location.hash || ""); } catch (e) { return ""; } })();</script>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -18,10 +18,11 @@
     --acc-soft: rgba(113, 75, 103, .12);
     --line: rgba(127, 127, 127, .20);
     --warn: #b3261e;
+    --good: #2e7d32;
     --tag-bg: #fff1cc; --tag-fg: #7a5200;
   }
   html.dark { --bg: var(--tg-theme-bg-color, #17212b); --text: var(--tg-theme-text-color, #f5f5f5); --hint: var(--tg-theme-hint-color, #8b9aa7);
-              --sec: var(--tg-theme-secondary-bg-color, #232e3c); --acc: #b07fa4; --acc-soft: rgba(176, 127, 164, .18); --warn: #ff8a80;
+              --sec: var(--tg-theme-secondary-bg-color, #232e3c); --acc: #b07fa4; --acc-soft: rgba(176, 127, 164, .18); --warn: #ff8a80; --good: #81c784;
               --tag-bg: rgba(255, 210, 90, .18); --tag-fg: #ffd77a; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; background: var(--bg); color: var(--text); }
@@ -60,6 +61,40 @@
   .msg { text-align: center; padding: 44px 8px 20px; font-size: 16px; line-height: 1.8; }
   .msg .go { margin-top: 22px; }
   .note { text-align: center; color: var(--hint); font-size: 13px; margin-top: 10px; }
+  /* (6.14) ✎ / ⏱ / ✋ */
+  .tabs { display: flex; gap: 6px; margin: 6px 0 10px; flex-wrap: wrap; }
+  .tab { font: inherit; font-size: 14px; flex: 1 1 40%; min-width: 0; border: 1px solid var(--line); background: transparent; color: var(--text); border-radius: 12px; padding: 9px 6px; }
+  .tab.sel { background: var(--acc); border-color: var(--acc); color: #fff; font-weight: 700; }
+  .tab.cal { flex: 1 1 100%; color: var(--acc); border-style: dashed; padding: 7px 6px; }
+  .hint { color: var(--hint); font-size: 13px; margin: 2px 0 6px; line-height: 1.6; }
+  .ico { flex: none; width: 22px; text-align: center; }
+  .row.chg { background: var(--acc-soft); border-radius: 8px; }
+  .row.chg .en { color: var(--acc); font-weight: 700; }
+  .ap { flex: none; color: var(--good); font-size: 13px; font-weight: 700; }
+  .ed { padding: 10px 8px 12px; margin-bottom: 4px; border-bottom: 1px solid var(--line); background: var(--sec); border-radius: 0 0 12px 12px; }
+  .cur { font-size: 13px; color: var(--hint); margin-bottom: 8px; line-height: 1.6; }
+  .fl { display: flex; gap: 10px; flex-wrap: wrap; }
+  .fld { flex: 1 1 120px; min-width: 0; }
+  .fld label { display: block; font-size: 13px; color: var(--hint); margin-bottom: 3px; }
+  .fld input[type=time] { font: inherit; font-size: 22px; font-weight: 700; width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg);
+                          color: var(--acc); direction: ltr; text-align: center; color-scheme: light dark; min-height: 46px; }
+  .mini { font: inherit; font-size: 13px; border: 1px dashed var(--acc); color: var(--acc); background: transparent; border-radius: 14px; padding: 4px 10px; margin-top: 6px; }
+  .acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .act { font: inherit; font-size: 14px; border: 1px solid var(--line); background: var(--bg); color: var(--text); border-radius: 12px; padding: 8px 12px; }
+  .act.warn { color: var(--warn); border-color: var(--warn); }
+  .act.pri { color: var(--acc); border-color: var(--acc); }
+  .act:disabled { opacity: .4; }
+  .sec { font-size: 13px; font-weight: 700; color: var(--hint); margin: 14px 2px 4px; }
+  .reasons { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 4px; }
+  .rs { font: inherit; font-size: 14px; border: 1px solid var(--line); background: transparent; color: var(--text); border-radius: 16px; padding: 6px 12px; }
+  .rs.sel { background: var(--acc); color: #fff; border-color: var(--acc); }
+  #why { font: inherit; width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--sec); color: var(--text); margin-top: 6px; }
+  .twin { display: flex; gap: 10px; }
+  .tcol { flex: 1; min-width: 0; text-align: center; }
+  .twin input[type=time] { font: inherit; font-size: 30px; font-weight: 700; color: var(--acc); background: transparent; border: none; width: 100%; text-align: center; direction: ltr;
+                           min-height: 46px; color-scheme: light dark; padding: 0; font-variant-numeric: tabular-nums; }
+  .twin input[type=time]:focus { outline: none; }
+  .dur { font-size: 13px; color: var(--hint); text-align: center; margin: 2px 0 2px; }
 </style>
 </head>
 <body>
@@ -67,7 +102,7 @@
 <script>
 (function () {
   "use strict";
-  var PV = 1;
+  var PV = 2;
   var L = {
     ar: { t_in: "🟢 دخول", t_out: "🔴 خروج", time_in: "وقت الدخول", time_out: "وقت الخروج", tap: "اضغط على الوقت لتغييره",
           now: "🕐 الآن", all: "☑ الكل", none: "☐ لا أحد", cnt: "{n} من {m} محددون", search: "🔎 بحث عن عامل", leave: "🌴 عطلة",
@@ -78,7 +113,22 @@
           empty_out: "لا يوجد عامل في العمل الآن.\nللتصحيح: «✎ تعديل» في المحادثة.", close: "إغلاق",
           nodata: "⚠ لم تصل قائمة الفريق إلى هذه الصفحة.", old: "⚠ هذه الصفحة قديمة. أخبر الموارد البشرية بتحديثها.",
           chat: "متابعة داخل المحادثة", notg: "افتح هذه الصفحة من زر البوت في تليغرام.", team: "{n} عمال في القائمة", team1: "عامل واحد في القائمة",
-          days: ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"] },
+          days: ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"],
+          t_ed: "✎ تعديل", t_ot: "⏱ ساعات إضافية", t_fx: "✋ نسيان البصمة", today: "اليوم", yday: "أمس", other: "📅 يوم آخر",
+          ed_hint: "اضغط على عامل لتعديل دخوله أو خروجه، أو لتسجيله غائباً.", ap_note: "✔ = وافقت عليه الموارد البشرية؛ تعديله يُرسَل طلبَ تعديل.",
+          st_n: "لم يُسجَّل", st_a: "غائب", cur: "الحالي: {v}", ap1: "✔ موافَق عليه", f_en: "الدخول", f_ex: "الخروج", normal: "العادي {t}",
+          b_abs: "🚫 غائب", b_del: "🗑 إلغاء التسجيل", b_undo: "↩ تراجع", b_done: "✔ تم",
+          will_abs: "سيُسجَّل غائباً.", will_del: "سيُلغى تسجيله لهذا اليوم.",
+          go_ed0: "لا يوجد تعديل بعد", go_ed1: "✔ إرسال تعديل {w}", go_edN: "✔ إرسال {n} تعديلات",
+          send_first: "أرسل التعديلات أو تراجع عنها أولاً.", too_many: "تعديلات كثيرة في مرة واحدة؛ أرسل جزءاً منها أولاً.",
+          ot_time: "وقت الساعات الإضافية", ot_from: "من", ot_to: "إلى", ot_next: "(اليوم التالي)", ot_dur: "المدة: {h}", hm: "{h} س {m} د",
+          reason: "السبب (اختياري)", r_other: "✍ سبب آخر", r_ph: "اكتب السبب", ot_pick: "العمال",
+          go_ot1: "✔ إرسال: {w}، من {a} إلى {b}", go_otN: "✔ إرسال: {n} عمال، من {a} إلى {b}", ot_same: "وقت النهاية يساوي وقت البداية.",
+          fx_hint: "اضغط على عامل لإدخال وقت البصمة التي نسيها.", fx_miss: "بصمة ناقصة ({n})", fx_rest: "عمال آخرون ({n})",
+          fx_nomiss: "لا توجد بصمة ناقصة في هذا اليوم.", fx_in: "دخل {t} · الخروج ناقص", fx_out: "خرج {t} · الدخول ناقص", fx_none: "لا بصمة",
+          fx_dev: "بصمات الجهاز: {p}", fx_both: "أدخل وقت الدخول ووقت الخروج: {w}", fx_bad: "الوقت لا يتوافق مع بصمة الجهاز: {w}",
+          go_fx0: "لا يوجد تصحيح بعد", go_fx1: "✔ إرسال تصحيح {w}", go_fxN: "✔ إرسال {n} تصحيحات",
+          stale: "⚠ القائمة في هذه الصفحة من يوم سابق.", noteam: "لا يوجد عمال لهذا الزر في فريقك." },
     fr: { t_in: "🟢 Entrée", t_out: "🔴 Sortie", time_in: "Heure d'entrée", time_out: "Heure de sortie", tap: "Touchez l'heure pour la changer",
           now: "🕐 Maintenant", all: "☑ Tous", none: "☐ Aucun", cnt: "{n} sur {m} cochés", search: "🔎 Rechercher un employé", leave: "🌴 congé",
           since: "entré {t}", go_in1: "✔ Entrée de {w} — {t}", go_inN: "✔ Entrée de {n} employés — {t}", go_out1: "✔ Sortie de {w} — {t}",
@@ -88,7 +138,22 @@
           empty_out: "Aucun employé au travail en ce moment.\nPour corriger : « ✎ Modifier » dans la conversation.", close: "Fermer",
           nodata: "⚠ La liste de l'équipe n'est pas arrivée sur cette page.", old: "⚠ Cette page est ancienne. Demandez aux RH de la mettre à jour.",
           chat: "Continuer dans la conversation", notg: "Ouvrez cette page depuis le bouton du bot dans Telegram.", team: "{n} employés dans la liste", team1: "1 employé dans la liste",
-          days: ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"] },
+          days: ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"],
+          t_ed: "✎ Modifier", t_ot: "⏱ Heures sup.", t_fx: "✋ Pointage oublié", today: "Aujourd'hui", yday: "Hier", other: "📅 Autre jour",
+          ed_hint: "Touchez un employé pour modifier son entrée ou sa sortie, ou le marquer absent.", ap_note: "✔ = validé par les RH ; le modifier envoie une demande de modification.",
+          st_n: "non enregistré", st_a: "absent", cur: "Actuel : {v}", ap1: "✔ validé", f_en: "Entrée", f_ex: "Sortie", normal: "Normal {t}",
+          b_abs: "🚫 Absent", b_del: "🗑 Annuler l'enregistrement", b_undo: "↩ Annuler", b_done: "✔ OK",
+          will_abs: "Sera marqué absent.", will_del: "Son enregistrement de ce jour sera annulé.",
+          go_ed0: "Aucune modification", go_ed1: "✔ Envoyer la modification de {w}", go_edN: "✔ Envoyer {n} modifications",
+          send_first: "Envoyez ou annulez d'abord les modifications.", too_many: "Trop de modifications d'un coup ; envoyez-en une partie d'abord.",
+          ot_time: "Heures supplémentaires", ot_from: "De", ot_to: "À", ot_next: "(lendemain)", ot_dur: "Durée : {h}", hm: "{h} h {m}",
+          reason: "Motif (facultatif)", r_other: "✍ Autre motif", r_ph: "Écrivez le motif", ot_pick: "Employés",
+          go_ot1: "✔ Envoyer : {w}, de {a} à {b}", go_otN: "✔ Envoyer : {n} employés, de {a} à {b}", ot_same: "L'heure de fin est égale à l'heure de début.",
+          fx_hint: "Touchez un employé pour saisir l'heure du pointage oublié.", fx_miss: "Pointage incomplet ({n})", fx_rest: "Autres employés ({n})",
+          fx_nomiss: "Aucun pointage incomplet ce jour-là.", fx_in: "entré {t} · sortie manquante", fx_out: "sorti {t} · entrée manquante", fx_none: "aucun pointage",
+          fx_dev: "Pointages de la pointeuse : {p}", fx_both: "Saisissez l'entrée et la sortie : {w}", fx_bad: "L'heure ne correspond pas au pointage de la pointeuse : {w}",
+          go_fx0: "Aucune correction", go_fx1: "✔ Envoyer la correction de {w}", go_fxN: "✔ Envoyer {n} corrections",
+          stale: "⚠ La liste de cette page date d'un jour précédent.", noteam: "Aucun employé de votre équipe pour ce bouton." },
     en: { t_in: "🟢 In", t_out: "🔴 Out", time_in: "Entry time", time_out: "Exit time", tap: "Tap the time to change it",
           now: "🕐 Now", all: "☑ All", none: "☐ None", cnt: "{n} of {m} ticked", search: "🔎 Search an employee", leave: "🌴 leave",
           since: "in {t}", go_in1: "✔ {w} in — {t}", go_inN: "✔ {n} employees in — {t}", go_out1: "✔ {w} out — {t}",
@@ -98,19 +163,36 @@
           empty_out: "No employee is at work right now.\nTo correct: “✎ Edit” in the chat.", close: "Close",
           nodata: "⚠ The team list did not reach this page.", old: "⚠ This page is outdated. Ask HR to update it.",
           chat: "Continue in the chat", notg: "Open this page from the bot button in Telegram.", team: "{n} employees in the list", team1: "1 employee in the list",
-          days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] }
+          days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+          t_ed: "✎ Edit", t_ot: "⏱ Overtime", t_fx: "✋ Forgotten punch", today: "Today", yday: "Yesterday", other: "📅 Other day",
+          ed_hint: "Tap an employee to change their entry or exit, or mark them absent.", ap_note: "✔ = approved by HR; changing it sends a change request.",
+          st_n: "not recorded", st_a: "absent", cur: "Current: {v}", ap1: "✔ approved", f_en: "Entry", f_ex: "Exit", normal: "Normal {t}",
+          b_abs: "🚫 Absent", b_del: "🗑 Cancel the record", b_undo: "↩ Undo", b_done: "✔ Done",
+          will_abs: "Will be marked absent.", will_del: "Their record for this day will be cancelled.",
+          go_ed0: "No change yet", go_ed1: "✔ Send the change for {w}", go_edN: "✔ Send {n} changes",
+          send_first: "Send or undo the changes first.", too_many: "Too many changes at once; send part of them first.",
+          ot_time: "Overtime", ot_from: "From", ot_to: "To", ot_next: "(next day)", ot_dur: "Duration: {h}", hm: "{h} h {m}",
+          reason: "Reason (optional)", r_other: "✍ Other reason", r_ph: "Type the reason", ot_pick: "Employees",
+          go_ot1: "✔ Send: {w}, from {a} to {b}", go_otN: "✔ Send: {n} employees, from {a} to {b}", ot_same: "The end time equals the start time.",
+          fx_hint: "Tap an employee to enter the time of the forgotten punch.", fx_miss: "Incomplete punch ({n})", fx_rest: "Other employees ({n})",
+          fx_nomiss: "No incomplete punch on that day.", fx_in: "in {t} · exit missing", fx_out: "out {t} · entry missing", fx_none: "no punch",
+          fx_dev: "Device punches: {p}", fx_both: "Enter both entry and exit: {w}", fx_bad: "The time does not match the device punch: {w}",
+          go_fx0: "No correction yet", go_fx1: "✔ Send the correction for {w}", go_fxN: "✔ Send {n} corrections",
+          stale: "⚠ The list on this page is from a previous day.", noteam: "No employee of your team for this button." }
   };
   var TG = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
   var lang = "ar";
   function T(k, o) { var s = (L[lang] || L.ar)[k]; if (typeof s !== "string") return s; for (var x in (o || {})) s = s.split("{" + x + "}").join(String(o[x])); return s; }
   function pad(n) { return (n < 10 ? "0" : "") + n; }
   function fm(m) { m = ((m % 1440) + 1440) % 1440; return pad(Math.floor(m / 60)) + ":" + pad(m % 60); }
+  function fmn(m) { return m == null ? "…" : fm(m); }
   function tmin(s) { var a = /^(\d{1,2}):(\d{2})/.exec(s || ""); return a ? (+a[1]) * 60 + (+a[2]) : null; }
   function iso(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
   function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
   function vok(v) { try { return !!(TG && TG.isVersionAtLeast && TG.isVersionAtLeast(v)); } catch (e) { return false; } }
   function haptic() { if (vok("6.1")) { try { TG.HapticFeedback.selectionChanged(); } catch (e) {} } }
   function inTelegram() { return !!(TG && TG.platform && TG.platform !== "unknown"); }
+  function norm(s) { return String(s).toLowerCase().replace(/[ً-ْـ]/g, "").replace(/[إأآ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه"); }
 
   /* ---- base64url + inflate (RFC 1951, raw deflate) ---- */
   function b64(s) {
@@ -189,20 +271,32 @@
   window.ZK_INFLATE = inflate; window.ZK_B64 = b64;
 
   /* ---- the team list sent by the bot inside the button link ---- */
+  function lvParse(s) { var lv = []; (s || "").split(",").forEach(function (r) { var x = r.split(":"); if (x.length === 2) lv.push(x); }); return lv; }
   function parse(hash) {
     var m = /(?:^|[#&?])zk=([A-Za-z0-9_-]+)/.exec(hash || "");
     if (!m) return null;
     var txt = new TextDecoder("utf-8").decode(inflate(b64(m[1])));
-    var lines = txt.split("\n"), h = lines[0].split("|");
-    var P = { pv: +h[0], mode: h[1] === "out" ? "out" : "in", date: h[2], lang: h[3], dS: +h[4], dE: +h[5], rows: [] };
-    for (var i = 1; i < lines.length; i++) {
-      if (!lines[i]) continue;
-      var f = lines[i].split("|"), se = (f[4] || "").split("/"), lv = [];
-      (f[5] || "").split(",").forEach(function (r) { var x = r.split(":"); if (x.length === 2) lv.push(x); });
-      P.rows.push({ k: f[0], n: f[1], st: f[2] || "n", en: f[3] === "" || f[3] == null ? null : +f[3],
-                    S: se.length === 2 ? +se[0] : P.dS, E: se.length === 2 ? +se[1] : P.dE, lv: lv });
+    var lines = txt.split("\n"), h = lines[0].split("|"), i, f, se;
+    if (h[1] === "in" || h[1] === "out" || +h[0] < 2) {
+      var P = { pv: +h[0], mode: h[1] === "out" ? "out" : "in", date: h[2], lang: h[3], dS: +h[4], dE: +h[5], rows: [] };
+      for (i = 1; i < lines.length; i++) {
+        if (!lines[i]) continue;
+        f = lines[i].split("|"); se = (f[4] || "").split("/");
+        P.rows.push({ k: f[0], n: f[1], st: f[2] || "n", en: f[3] === "" || f[3] == null ? null : +f[3],
+                      S: se.length === 2 ? +se[0] : P.dS, E: se.length === 2 ? +se[1] : P.dE, lv: lvParse(f[5]) });
+      }
+      return P;
     }
-    return P;
+    /* (6.14) ✎ ed / ⏱ ot / ✋ fx: «2|mode|today|lang|start|end|yesterday», «#R|reason|…», «key|name|S/E[/S1/E1]|leave|day0|day1» */
+    var Q = { pv: +h[0], mode: h[1], date: h[2], lang: h[3], dS: +h[4], dE: +h[5], date1: h[6] || h[2], rows: [], reasons: [] };
+    for (i = 1; i < lines.length; i++) {
+      if (!lines[i]) continue;
+      if (lines[i].indexOf("#R|") === 0) { Q.reasons = lines[i].split("|").slice(1).filter(function (x) { return !!x; }); continue; }
+      f = lines[i].split("|"); se = (f[2] || "").split("/");
+      var S0 = se.length >= 2 ? +se[0] : Q.dS, E0 = se.length >= 2 ? +se[1] : Q.dE;
+      Q.rows.push({ k: f[0], n: f[1], S: [S0, se.length >= 4 ? +se[2] : S0], E: [E0, se.length >= 4 ? +se[3] : E0], lv: lvParse(f[3]), x: [f[4] || "", f[5] || ""] });
+    }
+    return Q;
   }
 
   var app = document.getElementById("app");
@@ -219,9 +313,15 @@
     if (btn) { var b = el("button", "go", btn); b.type = "button"; b.onclick = fn; m.appendChild(b); }
     app.appendChild(m);
   }
+  function closeApp() { try { TG.close(); } catch (e) {} }
   function applyTheme() {
     var dark = !!(TG && TG.colorScheme === "dark");
     document.documentElement.classList.toggle("dark", dark);
+  }
+  function confirmThen(msg, fn) {
+    if (msg.length > 250) msg = msg.slice(0, 248) + "…";
+    if (vok("6.2")) { try { TG.showConfirm(msg, function (ok) { if (ok) fn(); }); return; } catch (e) {} }
+    if (window.confirm(msg)) fn();
   }
 
   var P = null, bad = false;
@@ -236,78 +336,299 @@
   if (TG) { try { TG.ready(); TG.expand(); } catch (e) {} applyTheme(); try { TG.onEvent("themeChanged", applyTheme); } catch (e) {} }
 
   if (!P) { message(T("nodata"), T("chat"), function () { send({ v: PV, a: "nodata" }); }); return; }
-  if (P.pv > PV) { message(T("old"), T("chat"), function () { send({ v: PV, a: "old" }); }); return; }
+  if (P.pv > PV || ["in", "out", "ed", "ot", "fx"].indexOf(P.mode) < 0) { message(T("old"), T("chat"), function () { send({ v: PV, a: "old" }); }); return; }
 
-  var now = new Date(), today = iso(now), stale = P.date !== today, mode = P.mode;
-  var rows = P.rows.filter(function (r) { return mode === "in" ? (stale || r.st === "n") : (!stale && r.st === "i"); });
-  rows.forEach(function (r) { r.on = true; r.leave = r.lv.some(function (x) { return x[0] <= today && today <= x[1]; }); });
-  function render() {
-    app.textContent = "";
-    if (!rows.length) { message(T(mode === "in" ? "empty_in" : "empty_out"), T("close"), function () { try { TG.close(); } catch (e) {} }); return; }
-    app.appendChild(el("h1", null, T(mode === "in" ? "t_in" : "t_out") + " — " + T("days")[now.getDay()] + " " + pad(now.getDate()) + "/" + pad(now.getMonth() + 1)));
-    app.appendChild(el("div", "sub", rows.length === 1 ? T("team1") : T("team", { n: rows.length })));
-    var card = el("div", "timecard"), lbl = el("div", "tlbl"), trow = el("div", "trow");
-    lbl.appendChild(el("b", null, T(mode === "in" ? "time_in" : "time_out"))); lbl.appendChild(document.createTextNode(" · " + T("tap")));
-    var tm = el("input"); tm.id = "tm"; tm.type = "time"; tm.step = 60;
-    var freq = {}, best = null; rows.forEach(function (r) { var v = mode === "in" ? r.S : r.E; freq[v] = (freq[v] || 0) + 1; if (best === null || freq[v] > freq[best]) best = v; });
-    tm.value = fm(best === null ? (mode === "in" ? P.dS : P.dE) : best);
-    var nb = el("button", "now", T("now")); nb.type = "button"; nb.onclick = function () { var d = new Date(); tm.value = fm(d.getHours() * 60 + d.getMinutes()); haptic(); update(); };
-    trow.appendChild(tm); trow.appendChild(nb); card.appendChild(lbl); card.appendChild(trow); app.appendChild(card);
-    var err = el("div"); err.id = "err"; app.appendChild(err);
-    var chips = el("div", "chips"), ca = el("button", "chip", T("all")), cn = el("button", "chip", T("none")), cnt = el("span", "cnt");
-    ca.type = cn.type = "button"; chips.appendChild(ca); chips.appendChild(cn); chips.appendChild(cnt); app.appendChild(chips);
-    var q = null;
-    if (rows.length > 15) { q = el("input"); q.id = "q"; q.type = "search"; q.placeholder = T("search"); app.appendChild(q); }
-    var list = el("div"); list.id = "list"; app.appendChild(list);
-    rows.forEach(function (r) {
-      var e = el("div", "row"); e.setAttribute("data-k", r.k);
-      var cb = el("span", "cb", "✓"); e.appendChild(cb); e.appendChild(el("span", "nm", r.n));
-      if (r.leave) e.appendChild(el("span", "tag", T("leave")));
-      if (mode === "out" && r.en != null) e.appendChild(el("span", "en", T("since", { t: fm(r.en) })));
-      e.onclick = function () { r.on = !r.on; haptic(); update(); };
-      r.e = e; list.appendChild(e);
-    });
-    var absb = null;
-    if (mode === "in") { absb = el("button"); absb.id = "abs"; absb.type = "button"; app.appendChild(absb); }
-    var bar = el("div", "bar"), go = el("button", "go"); go.id = "go"; go.type = "button"; bar.appendChild(go); app.appendChild(bar);
-    function norm(s) { return String(s).toLowerCase().replace(/[ً-ْـ]/g, "").replace(/[إأآ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه"); }
-    function visible(r) { return !q || !q.value || norm(r.n).indexOf(norm(q.value)) >= 0; }
-    function ticked() { return rows.filter(function (r) { return r.on; }); }
-    function names(rs, n) { var s = rs.slice(0, n).map(function (r) { return r.n; }).join(lang === "ar" ? "، " : ", "); return rs.length > n ? s + " …" : s; }
-    function update() {
-      var t = tmin(tm.value), sel = ticked(), wrong = [];
+  var now = new Date(), today = iso(now);
+
+  /* ================= 🟢 دخول / 🔴 خروج (6.13) ================= */
+  function renderIO() {
+    var stale = P.date !== today, mode = P.mode;
+    var rows = P.rows.filter(function (r) { return mode === "in" ? (stale || r.st === "n") : (!stale && r.st === "i"); });
+    rows.forEach(function (r) { r.on = true; r.leave = r.lv.some(function (x) { return x[0] <= today && today <= x[1]; }); });
+    function render() {
+      app.textContent = "";
+      if (!rows.length) { message(T(mode === "in" ? "empty_in" : "empty_out"), T("close"), closeApp); return; }
+      app.appendChild(el("h1", null, T(mode === "in" ? "t_in" : "t_out") + " — " + T("days")[now.getDay()] + " " + pad(now.getDate()) + "/" + pad(now.getMonth() + 1)));
+      app.appendChild(el("div", "sub", rows.length === 1 ? T("team1") : T("team", { n: rows.length })));
+      var card = el("div", "timecard"), lbl = el("div", "tlbl"), trow = el("div", "trow");
+      lbl.appendChild(el("b", null, T(mode === "in" ? "time_in" : "time_out"))); lbl.appendChild(document.createTextNode(" · " + T("tap")));
+      var tm = el("input"); tm.id = "tm"; tm.type = "time"; tm.step = 60;
+      var freq = {}, best = null; rows.forEach(function (r) { var v = mode === "in" ? r.S : r.E; freq[v] = (freq[v] || 0) + 1; if (best === null || freq[v] > freq[best]) best = v; });
+      tm.value = fm(best === null ? (mode === "in" ? P.dS : P.dE) : best);
+      var nb = el("button", "now", T("now")); nb.type = "button"; nb.onclick = function () { var d = new Date(); tm.value = fm(d.getHours() * 60 + d.getMinutes()); haptic(); update(); };
+      trow.appendChild(tm); trow.appendChild(nb); card.appendChild(lbl); card.appendChild(trow); app.appendChild(card);
+      var err = el("div"); err.id = "err"; app.appendChild(err);
+      var chips = el("div", "chips"), ca = el("button", "chip", T("all")), cn = el("button", "chip", T("none")), cnt = el("span", "cnt");
+      ca.type = cn.type = "button"; chips.appendChild(ca); chips.appendChild(cn); chips.appendChild(cnt); app.appendChild(chips);
+      var q = null;
+      if (rows.length > 15) { q = el("input"); q.id = "q"; q.type = "search"; q.placeholder = T("search"); app.appendChild(q); }
+      var list = el("div"); list.id = "list"; app.appendChild(list);
       rows.forEach(function (r) {
-        var isBad = mode === "out" && r.on && t !== null && r.en != null && t <= r.en; if (isBad) wrong.push(r);
-        r.e.className = "row" + (r.on ? " on" : " off") + (isBad ? " bad" : ""); r.e.style.display = visible(r) ? "" : "none";
+        var e = el("div", "row"); e.setAttribute("data-k", r.k);
+        var cb = el("span", "cb", "✓"); e.appendChild(cb); e.appendChild(el("span", "nm", r.n));
+        if (r.leave) e.appendChild(el("span", "tag", T("leave")));
+        if (mode === "out" && r.en != null) e.appendChild(el("span", "en", T("since", { t: fm(r.en) })));
+        e.onclick = function () { r.on = !r.on; haptic(); update(); };
+        r.e = e; list.appendChild(e);
       });
-      cnt.textContent = T("cnt", { n: sel.length, m: rows.length });
-      err.textContent = wrong.length ? T("order", { w: names(wrong, 6) }) : "";
-      if (absb) { absb.textContent = T("abs", { n: sel.length }); absb.disabled = !sel.length; absb.style.opacity = sel.length ? "1" : ".45"; }
-      if (!sel.length) { go.textContent = T("pick"); go.disabled = true; return; }
-      var ts = t === null ? "--:--" : fm(t);
-      go.textContent = sel.length === 1 ? T(mode === "in" ? "go_in1" : "go_out1", { w: sel[0].n, t: ts }) : T(mode === "in" ? "go_inN" : "go_outN", { n: sel.length, t: ts });
-      go.disabled = t === null || wrong.length > 0;
+      var absb = null;
+      if (mode === "in") { absb = el("button"); absb.id = "abs"; absb.type = "button"; app.appendChild(absb); }
+      var bar = el("div", "bar"), go = el("button", "go"); go.id = "go"; go.type = "button"; bar.appendChild(go); app.appendChild(bar);
+      function visible(r) { return !q || !q.value || norm(r.n).indexOf(norm(q.value)) >= 0; }
+      function ticked() { return rows.filter(function (r) { return r.on; }); }
+      function names(rs, n) { var s = rs.slice(0, n).map(function (r) { return r.n; }).join(lang === "ar" ? "، " : ", "); return rs.length > n ? s + " …" : s; }
+      function update() {
+        var t = tmin(tm.value), sel = ticked(), wrong = [];
+        rows.forEach(function (r) {
+          var isBad = mode === "out" && r.on && t !== null && r.en != null && t <= r.en; if (isBad) wrong.push(r);
+          r.e.className = "row" + (r.on ? " on" : " off") + (isBad ? " bad" : ""); r.e.style.display = visible(r) ? "" : "none";
+        });
+        cnt.textContent = T("cnt", { n: sel.length, m: rows.length });
+        err.textContent = wrong.length ? T("order", { w: names(wrong, 6) }) : "";
+        if (absb) { absb.textContent = T("abs", { n: sel.length }); absb.disabled = !sel.length; absb.style.opacity = sel.length ? "1" : ".45"; }
+        if (!sel.length) { go.textContent = T("pick"); go.disabled = true; return; }
+        var ts = t === null ? "--:--" : fm(t);
+        go.textContent = sel.length === 1 ? T(mode === "in" ? "go_in1" : "go_out1", { w: sel[0].n, t: ts }) : T(mode === "in" ? "go_inN" : "go_outN", { n: sel.length, t: ts });
+        go.disabled = t === null || wrong.length > 0;
+      }
+      ca.onclick = function () { rows.forEach(function (r) { if (visible(r)) r.on = true; }); haptic(); update(); };
+      cn.onclick = function () { rows.forEach(function (r) { if (visible(r)) r.on = false; }); haptic(); update(); };
+      if (q) q.oninput = update;
+      tm.onchange = tm.oninput = update;
+      go.onclick = function () {
+        var t = tmin(tm.value), sel = ticked(); if (t === null || !sel.length || go.disabled) return;
+        go.disabled = true; send({ v: PV, a: mode, d: today, t: t, k: sel.map(function (r) { return r.k; }) });
+        setTimeout(update, 1500);
+      };
+      if (absb) absb.onclick = function () {
+        var sel = ticked(); if (!sel.length) return;
+        var msg = sel.length === 1 ? T("abs_q1", { w: sel[0].n }) : T("abs_q", { n: sel.length, w: names(sel, 8) });
+        confirmThen(msg, function () { send({ v: PV, a: "abs", d: today, k: sel.map(function (r) { return r.k; }) }); });
+      };
+      update();
     }
-    ca.onclick = function () { rows.forEach(function (r) { if (visible(r)) r.on = true; }); haptic(); update(); };
-    cn.onclick = function () { rows.forEach(function (r) { if (visible(r)) r.on = false; }); haptic(); update(); };
-    if (q) q.oninput = update;
-    tm.onchange = tm.oninput = update;
-    go.onclick = function () {
-      var t = tmin(tm.value), sel = ticked(); if (t === null || !sel.length || go.disabled) return;
-      go.disabled = true; send({ v: PV, a: mode, d: today, t: t, k: sel.map(function (r) { return r.k; }) });
-      setTimeout(update, 1500);
-    };
-    if (absb) absb.onclick = function () {
-      var sel = ticked(); if (!sel.length) return;
-      var msg = sel.length === 1 ? T("abs_q1", { w: sel[0].n }) : T("abs_q", { n: sel.length, w: names(sel, 8) });
-      if (msg.length > 250) msg = msg.slice(0, 248) + "…";
-      var fn = function () { send({ v: PV, a: "abs", d: today, k: sel.map(function (r) { return r.k; }) }); };
-      if (vok("6.2")) { try { TG.showConfirm(msg, function (ok) { if (ok) fn(); }); return; } catch (e) {} }
-      if (window.confirm(msg)) fn();
-    };
-    update();
+    render();
   }
-  render();
+
+  /* ================= (6.14) ✎ تعديل / ⏱ ساعات إضافية / ✋ نسيان البصمة ================= */
+  function renderV2() {
+    var mode = P.mode, days = [P.date, P.date1], di = 0, CH = {}, openK = null, rows = P.rows, q = null, err = null, go = null;
+    var ICON = { n: "⚪", i: "🟢", o: "🔴", a: "🚫" };
+    var otS = null, otE = null, touched = false, whyIdx = -1, why = "";
+    rows.forEach(function (r) { r.on = false; });
+    function dlab(i) { var d = new Date(days[i] + "T12:00:00"); return T(i ? "yday" : "today") + " — " + T("days")[d.getDay()] + " " + pad(d.getDate()) + "/" + pad(d.getMonth() + 1); }
+    function leaveOn(r) { var x = days[di]; return r.lv.some(function (p) { return p[0] <= x && x <= p[1]; }); }
+    function names(rs, n) { var s = rs.slice(0, n).map(function (r) { return r.n; }).join(lang === "ar" ? "، " : ", "); return rs.length > n ? s + " …" : s; }
+    function visible(r) { return !q || !q.value || norm(r.n).indexOf(norm(q.value)) >= 0; }
+    function nchg() { return Object.keys(CH).length; }
+    function blocked() { if (mode !== "ot" && nchg()) { if (err) err.textContent = T("send_first"); return true; } return false; }
+    function edCur(s) { if (!s) return { st: "n", en: null, ex: null, ap: 0 }; var a = s.split(","), num = function (v) { return v === "" || v == null ? null : +v; };
+                        return { st: a[0] || "n", en: num(a[1]), ex: num(a[2]), ap: +(a[3] || 0) }; }
+    function fxCur(s) { if (!s) return { g: "n", p: [] }; var j = s.indexOf(":"), g = j < 0 ? s : s.slice(0, j), p = j < 0 ? "" : s.slice(j + 1);
+                        return { g: g || "n", p: p ? p.split(",").map(Number) : [] }; }
+    function edEff(r) {
+      var x = edCur(r.x[di]), c = CH[r.k]; if (!c) return x;
+      if (c.op === "a") return { st: "a", en: null, ex: null };
+      if (c.op === "x") return { st: "n", en: null, ex: null };
+      var en = c.en != null ? c.en : x.en, ex = c.ex != null ? c.ex : x.ex;
+      return { st: ex != null ? "o" : en != null ? "i" : (x.st === "a" ? "a" : "n"), en: en, ex: ex };
+    }
+    function edTxt(f) { return f.st === "a" ? T("st_a") : f.st === "n" ? T("st_n") : fmn(f.en) + " – " + fmn(f.ex); }
+    function fxNeed(x) { return x.g === "i" ? ["ex"] : x.g === "o" ? ["en"] : ["en", "ex"]; }
+    function fxTxt(x) { return x.g === "i" ? T("fx_in", { t: fm(x.p[0]) }) : x.g === "o" ? T("fx_out", { t: fm(x.p[x.p.length - 1]) }) : x.p.length ? x.p.map(fm).join(" · ") : T("fx_none"); }
+    function fxChg(x, c) { var nd = fxNeed(x); return nd.length === 2 ? fmn(c.en) + " – " + fmn(c.ex) : nd[0] === "ex" ? fm(x.p[0]) + " – " + fmn(c.ex) : fmn(c.en) + " – " + fm(x.p[x.p.length - 1]); }
+    function rowBad(r) {
+      var c = CH[r.k]; if (!c) return "";
+      if (mode === "ed") { var f = edEff(r); return f.en != null && f.ex != null && f.ex <= f.en ? "order" : ""; }
+      var x = fxCur(r.x[di]), nd = fxNeed(x);
+      if (nd.length === 2) { if (c.en == null || c.ex == null) return "both"; return c.ex <= c.en ? "order" : ""; }
+      if (nd[0] === "ex") return c.ex != null && x.p.length && c.ex <= x.p[0] ? "order" : "";
+      return c.en != null && x.p.length && c.en >= x.p[x.p.length - 1] ? "order" : "";
+    }
+    function render() {
+      app.textContent = ""; q = null;
+      app.appendChild(el("h1", null, T("t_" + mode)));
+      var tabs = el("div", "tabs");
+      [0, 1].forEach(function (i) {
+        var b = el("button", "tab" + (i === di ? " sel" : ""), dlab(i)); b.type = "button"; b.setAttribute("data-day", String(i));
+        b.onclick = function () { if (i === di || blocked()) return; di = i; openK = null; haptic(); render(); };
+        tabs.appendChild(b);
+      });
+      var cb = el("button", "tab cal", T("other")); cb.type = "button"; cb.id = "cal";
+      cb.onclick = function () { if (blocked()) return; send({ v: PV, a: "cal", m: mode }); };
+      tabs.appendChild(cb); app.appendChild(tabs);
+      if (!rows.length) { var m = el("div", "msg", T("noteam")); app.appendChild(m); var b2 = el("button", "go", T("close")); b2.type = "button"; b2.onclick = closeApp; m.appendChild(b2); return; }
+      if (mode === "ot") renderOt(); else renderList();
+    }
+    function searchBox(cb) { if (rows.length <= 15) return; q = el("input"); q.id = "q"; q.type = "search"; q.placeholder = T("search"); q.oninput = cb; app.appendChild(q); }
+    function bar() { var b = el("div", "bar"); go = el("button", "go"); go.id = "go"; go.type = "button"; b.appendChild(go); app.appendChild(b); }
+
+    /* ---- ✎ and ✋: list of workers, tap → editor under the row, several changes then one send ---- */
+    function renderList() {
+      app.appendChild(el("div", "hint", T(mode === "ed" ? "ed_hint" : "fx_hint")));
+      if (mode === "ed" && rows.some(function (r) { return edCur(r.x[di]).ap; })) app.appendChild(el("div", "hint", T("ap_note")));
+      err = el("div"); err.id = "err"; app.appendChild(err);
+      searchBox(filter);
+      if (mode === "fx") {
+        var miss = rows.filter(function (r) { var g = fxCur(r.x[di]).g; return g === "i" || g === "o"; }), rest = rows.filter(function (r) { return miss.indexOf(r) < 0; });
+        app.appendChild(el("div", "sec", T("fx_miss", { n: miss.length })));
+        if (!miss.length) app.appendChild(el("div", "hint", T("fx_nomiss")));
+        var l1 = el("div"); l1.id = "miss"; app.appendChild(l1); miss.forEach(function (r) { addRow(l1, r); });
+        if (rest.length) { app.appendChild(el("div", "sec", T("fx_rest", { n: rest.length }))); var l2 = el("div"); l2.id = "rest"; app.appendChild(l2); rest.forEach(function (r) { addRow(l2, r); }); }
+      } else { var l = el("div"); l.id = "list"; app.appendChild(l); rows.forEach(function (r) { addRow(l, r); }); }
+      bar(); go.onclick = sendList; update();
+    }
+    function addRow(box, r) {
+      var e = el("div", "row"); e.setAttribute("data-k", r.k); var d = el("div", "ed"); d.style.display = "none";
+      e.onclick = function () { openK = openK === r.k ? null : r.k; haptic(); rows.forEach(function (x) { if (x.e) drawRow(x); }); update(); };
+      r.e = e; r.ed = d; box.appendChild(e); box.appendChild(d); drawRow(r);
+    }
+    function drawRow(r) {
+      var e = r.e, c = CH[r.k]; e.textContent = "";
+      if (mode === "ed") {
+        var x = edCur(r.x[di]), f = edEff(r);
+        e.appendChild(el("span", "ico", ICON[f.st] || "⚪")); e.appendChild(el("span", "nm", r.n));
+        if (leaveOn(r)) e.appendChild(el("span", "tag", T("leave")));
+        if (x.ap && !c) e.appendChild(el("span", "ap", "✔"));
+        e.appendChild(el("span", "en", (c ? "✎ " : "") + edTxt(f)));
+      } else {
+        var y = fxCur(r.x[di]);
+        e.appendChild(el("span", "nm", r.n));
+        if (leaveOn(r)) e.appendChild(el("span", "tag", T("leave")));
+        e.appendChild(el("span", "en", c ? "✎ " + fxChg(y, c) : fxTxt(y)));
+      }
+      e.className = "row" + (c ? " chg" : "") + (rowBad(r) ? " bad" : "");
+      e.style.display = visible(r) ? "" : "none";
+      drawEditor(r);
+    }
+    function field(box, label, val, normalT, onset) {
+      var fld = el("div", "fld"), lb = el("label", null, label), inp = el("input"); inp.type = "time"; inp.step = 60; inp.value = val == null ? "" : fm(val);
+      inp.onchange = function () { onset(tmin(inp.value)); };
+      fld.appendChild(lb); fld.appendChild(inp);
+      if (val == null) { var mb = el("button", "mini", T("normal", { t: fm(normalT) })); mb.type = "button"; mb.onclick = function (ev) { ev.stopPropagation(); onset(normalT); }; fld.appendChild(mb); }
+      box.appendChild(fld); return inp;
+    }
+    function act(box, txt, cls, dis, fn) { var b = el("button", "act" + (cls ? " " + cls : ""), txt); b.type = "button"; b.disabled = !!dis; b.onclick = function (ev) { ev.stopPropagation(); fn(); }; box.appendChild(b); return b; }
+    function changed(r) { haptic(); drawRow(r); update(); }
+    function drawEditor(r) {
+      var d = r.ed; d.textContent = "";
+      if (openK !== r.k || !visible(r)) { d.style.display = "none"; return; }
+      d.style.display = ""; d.onclick = function (ev) { ev.stopPropagation(); };
+      var c = CH[r.k] || {}, S = r.S[di], E = r.E[di], fl = el("div", "fl"), acts = el("div", "acts");
+      if (mode === "ed") {
+        var x = edCur(r.x[di]);
+        d.appendChild(el("div", "cur", T("cur", { v: edTxt(x) }) + (x.ap ? " · " + T("ap1") : "")));
+        [["en", "f_en", S], ["ex", "f_ex", E]].forEach(function (z) {
+          field(fl, T(z[1]), c.op ? null : (c[z[0]] != null ? c[z[0]] : x[z[0]]), z[2], function (v) {
+            var n = CH[r.k] && !CH[r.k].op ? CH[r.k] : {};
+            if (v == null || v === x[z[0]]) delete n[z[0]]; else n[z[0]] = v;
+            if (n.en == null && n.ex == null) delete CH[r.k]; else { n.op = ""; CH[r.k] = n; }
+            changed(r);
+          });
+        });
+        d.appendChild(fl);
+        if (c.op) d.appendChild(el("div", "cur", T(c.op === "a" ? "will_abs" : "will_del")));
+        act(acts, T("b_abs"), "warn", x.st === "a" || c.op === "a", function () { CH[r.k] = { op: "a" }; changed(r); });
+        act(acts, T("b_del"), "", x.st === "n" || c.op === "x", function () { CH[r.k] = { op: "x" }; changed(r); });
+      } else {
+        var y = fxCur(r.x[di]);
+        d.appendChild(el("div", "cur", y.p.length ? T("fx_dev", { p: y.p.map(fm).join(" · ") }) : T("fx_none")));
+        fxNeed(y).forEach(function (f) {
+          field(fl, T(f === "en" ? "f_en" : "f_ex"), c[f], f === "en" ? S : E, function (v) {
+            var n = CH[r.k] || {};
+            if (v == null) delete n[f]; else n[f] = v;
+            if (n.en == null && n.ex == null) delete CH[r.k]; else CH[r.k] = n;
+            changed(r);
+          });
+        });
+        d.appendChild(fl);
+      }
+      if (CH[r.k]) act(acts, T("b_undo"), "", false, function () { delete CH[r.k]; changed(r); });
+      act(acts, T("b_done"), "pri", false, function () { openK = null; changed(r); });
+      d.appendChild(acts);
+    }
+    function filter() { rows.forEach(function (r) { if (r.e) drawRow(r); }); }
+    function changedRows() { return rows.filter(function (r) { return CH[r.k]; }); }
+    function update() {
+      if (mode === "ot") return updateOt();
+      var ch = changedRows(), bads = ch.filter(function (r) { return rowBad(r); }), both = bads.filter(function (r) { return rowBad(r) === "both"; });
+      err.textContent = both.length ? T("fx_both", { w: names(both, 6) }) : bads.length ? T(mode === "ed" ? "order" : "fx_bad", { w: names(bads, 6) }) : "";
+      if (!ch.length) { go.textContent = T("go_" + mode + "0"); go.disabled = true; return; }
+      go.textContent = ch.length === 1 ? T("go_" + mode + "1", { w: ch[0].n }) : T("go_" + mode + "N", { n: ch.length });
+      go.disabled = bads.length > 0;
+    }
+    function sendList() {
+      var ch = changedRows(); if (!ch.length || go.disabled) return;
+      var c = ch.map(function (r) { var z = CH[r.k], a = [r.k, z.en != null ? z.en : -1, z.ex != null ? z.ex : -1]; if (mode === "ed") a.push(z.op || ""); return a; });
+      var obj = { v: PV, a: mode, d: days[di], c: c };
+      if (JSON.stringify(obj).length > 4000) { err.textContent = T("too_many"); return; }
+      go.disabled = true; send(obj); setTimeout(update, 1500);
+    }
+
+    /* ---- ⏱: from–to, reason, workers (none ticked) ---- */
+    function otDefault() {
+      var freq = {}, best = null;
+      rows.forEach(function (r) { var v = r.E[di]; freq[v] = (freq[v] || 0) + 1; if (best === null || freq[v] > freq[best]) best = v; });
+      otS = best === null ? P.dE : best; otE = (otS + 120) % 1440;
+    }
+    var otTs = null, otTe = null, otDur = null, otCnt = null;
+    function renderOt() {
+      if (!touched || otS == null) otDefault();
+      var card = el("div", "timecard"), lbl = el("div", "tlbl");
+      lbl.appendChild(el("b", null, T("ot_time"))); lbl.appendChild(document.createTextNode(" · " + T("tap"))); card.appendChild(lbl);
+      var tw = el("div", "twin"), c1 = el("div", "tcol"), c2 = el("div", "tcol");
+      c1.appendChild(el("div", "tlbl", T("ot_from"))); otTs = el("input"); otTs.type = "time"; otTs.step = 60; otTs.id = "ts"; otTs.value = fm(otS); c1.appendChild(otTs);
+      c2.appendChild(el("div", "tlbl", T("ot_to"))); otTe = el("input"); otTe.type = "time"; otTe.step = 60; otTe.id = "te"; otTe.value = fm(otE); c2.appendChild(otTe);
+      tw.appendChild(c1); tw.appendChild(c2); card.appendChild(tw); otDur = el("div", "dur"); card.appendChild(otDur); app.appendChild(card);
+      otTs.onchange = function () { var v = tmin(otTs.value); if (v != null) { otS = v; touched = true; } update(); };
+      otTe.onchange = function () { var v = tmin(otTe.value); if (v != null) { otE = v; touched = true; } update(); };
+      app.appendChild(el("div", "sec", T("reason")));
+      var rw = el("div", "reasons"); rw.id = "reasons"; app.appendChild(rw);
+      var wi = el("input"); wi.id = "why"; wi.type = "text"; wi.maxLength = 120; wi.placeholder = T("r_ph"); wi.value = why; wi.oninput = function () { why = wi.value; };
+      function drawReasons() {
+        rw.textContent = "";
+        P.reasons.forEach(function (z, i) { var b = el("button", "rs" + (whyIdx === i ? " sel" : ""), z); b.type = "button"; b.onclick = function () { whyIdx = whyIdx === i ? -1 : i; haptic(); drawReasons(); }; rw.appendChild(b); });
+        var ob = el("button", "rs" + (whyIdx === -2 ? " sel" : ""), T("r_other")); ob.type = "button"; ob.id = "r_other";
+        ob.onclick = function () { whyIdx = whyIdx === -2 ? -1 : -2; haptic(); drawReasons(); if (whyIdx === -2) { try { wi.focus(); } catch (e) {} } }; rw.appendChild(ob);
+        wi.style.display = whyIdx === -2 ? "" : "none";
+      }
+      app.appendChild(wi); drawReasons();
+      err = el("div"); err.id = "err"; app.appendChild(err);
+      app.appendChild(el("div", "sec", T("ot_pick")));
+      var chips = el("div", "chips"), ca = el("button", "chip", T("all")), cn = el("button", "chip", T("none")); otCnt = el("span", "cnt");
+      ca.type = cn.type = "button"; chips.appendChild(ca); chips.appendChild(cn); chips.appendChild(otCnt); app.appendChild(chips);
+      searchBox(update);
+      var list = el("div"); list.id = "list"; app.appendChild(list);
+      rows.forEach(function (r) {
+        var e = el("div", "row"); e.setAttribute("data-k", r.k); e.appendChild(el("span", "cb", "✓")); e.appendChild(el("span", "nm", r.n));
+        if (leaveOn(r)) e.appendChild(el("span", "tag", T("leave")));
+        e.onclick = function () { r.on = !r.on; haptic(); update(); }; r.e = e; list.appendChild(e);
+      });
+      ca.onclick = function () { rows.forEach(function (r) { if (visible(r)) r.on = true; }); haptic(); update(); };
+      cn.onclick = function () { rows.forEach(function (r) { if (visible(r)) r.on = false; }); haptic(); update(); };
+      bar(); go.onclick = sendOt; update();
+    }
+    function updateOt() {
+      var sel = rows.filter(function (r) { return r.on; }), dmin = ((otE - otS) % 1440 + 1440) % 1440;
+      rows.forEach(function (r) { r.e.className = "row" + (r.on ? " on" : " off"); r.e.style.display = visible(r) ? "" : "none"; });
+      otCnt.textContent = T("cnt", { n: sel.length, m: rows.length });
+      otDur.textContent = dmin ? T("ot_dur", { h: T("hm", { h: Math.floor(dmin / 60), m: pad(dmin % 60) }) }) + (otE < otS ? " " + T("ot_next") : "") : "";
+      err.textContent = otS === otE ? T("ot_same") : "";
+      if (!sel.length) { go.textContent = T("pick"); go.disabled = true; return; }
+      go.textContent = sel.length === 1 ? T("go_ot1", { w: sel[0].n, a: fm(otS), b: fm(otE) }) : T("go_otN", { n: sel.length, a: fm(otS), b: fm(otE) });
+      go.disabled = otS === otE;
+    }
+    function sendOt() {
+      var sel = rows.filter(function (r) { return r.on; }); if (!sel.length || go.disabled) return;
+      var w = whyIdx >= 0 ? (P.reasons[whyIdx] || "") : whyIdx === -2 ? why.trim().slice(0, 120) : "";
+      go.disabled = true; send({ v: PV, a: "ot", d: days[di], s: otS, e: otE, k: sel.map(function (r) { return r.k; }), w: w }); setTimeout(update, 1500);
+    }
+    render();
+  }
+
+  if (P.mode === "in" || P.mode === "out") renderIO();
+  else if (P.date !== today) message(T("stale"), T("chat"), function () { send({ v: PV, a: "stale", m: P.mode }); });
+  else renderV2();
   if (!inTelegram()) note(T("notg"));
 })();
 </script>
